@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
+import type { AppLocale } from "../shared/i18n/types";
 
 const hermesAPI = {
   // Installation
@@ -8,6 +9,8 @@ const hermesAPI = {
     configured: boolean;
     hasApiKey: boolean;
   }> => ipcRenderer.invoke("check-install"),
+
+  verifyInstall: (): Promise<boolean> => ipcRenderer.invoke("verify-install"),
 
   startInstall: (): Promise<{ success: boolean; error?: string }> =>
     ipcRenderer.invoke("start-install"),
@@ -54,8 +57,8 @@ const hermesAPI = {
   runClawMigrate: (): Promise<{ success: boolean; error?: string }> =>
     ipcRenderer.invoke("run-claw-migrate"),
 
-  getLocale: (): Promise<"en"> => ipcRenderer.invoke("get-locale"),
-  setLocale: (locale: "en"): Promise<"en"> =>
+  getLocale: (): Promise<AppLocale> => ipcRenderer.invoke("get-locale"),
+  setLocale: (locale: AppLocale): Promise<AppLocale> =>
     ipcRenderer.invoke("set-locale", locale),
 
   // Configuration (profile-aware)

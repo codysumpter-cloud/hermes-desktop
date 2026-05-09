@@ -1,5 +1,5 @@
 import { ChildProcess, spawn } from "child_process";
-import { existsSync, readFileSync, appendFileSync } from "fs";
+import { existsSync, readFileSync, appendFileSync, unlinkSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 import http from "http";
@@ -16,7 +16,7 @@ import { stripAnsi } from "./utils";
 
 const LOCAL_API_URL = "http://127.0.0.1:8642";
 
-function getApiUrl(): string {
+export function getApiUrl(): string {
   const conn = getConnectionConfig();
   if (conn.mode === "remote" && conn.remoteUrl) {
     return conn.remoteUrl.replace(/\/+$/, "");
@@ -28,7 +28,7 @@ export function isRemoteMode(): boolean {
   return getConnectionConfig().mode === "remote";
 }
 
-function getRemoteAuthHeader(): Record<string, string> {
+export function getRemoteAuthHeader(): Record<string, string> {
   const conn = getConnectionConfig();
   if (conn.mode === "remote" && conn.apiKey) {
     return { Authorization: `Bearer ${conn.apiKey}` };
@@ -50,6 +50,13 @@ const URL_KEY_MAP: Array<{ pattern: RegExp; envKey: string }> = [
   { pattern: /anthropic\.com/i, envKey: "ANTHROPIC_API_KEY" },
   { pattern: /openai\.com/i, envKey: "OPENAI_API_KEY" },
   { pattern: /huggingface\.co/i, envKey: "HF_TOKEN" },
+  { pattern: /api\.groq\.com/i, envKey: "GROQ_API_KEY" },
+  { pattern: /api\.deepseek\.com/i, envKey: "DEEPSEEK_API_KEY" },
+  { pattern: /api\.together\.xyz/i, envKey: "TOGETHER_API_KEY" },
+  { pattern: /api\.fireworks\.ai/i, envKey: "FIREWORKS_API_KEY" },
+  { pattern: /api\.cerebras\.ai/i, envKey: "CEREBRAS_API_KEY" },
+  { pattern: /api\.mistral\.ai/i, envKey: "MISTRAL_API_KEY" },
+  { pattern: /api\.perplexity\.ai/i, envKey: "PERPLEXITY_API_KEY" },
 ];
 
 interface ChatHandle {
@@ -469,7 +476,12 @@ function sendMessageViaCli(
       }
     }
     if (!resolvedKey) {
-      resolvedKey = profileEnv.OPENAI_API_KEY || env.OPENAI_API_KEY || "";
+      resolvedKey =
+        profileEnv.CUSTOM_API_KEY ||
+        env.CUSTOM_API_KEY ||
+        profileEnv.OPENAI_API_KEY ||
+        env.OPENAI_API_KEY ||
+        "";
     }
     // Local servers (localhost/127.0.0.1) don't need a real key
     if (!resolvedKey && /localhost|127\.0\.0\.1/i.test(mc.baseUrl)) {
@@ -717,6 +729,17 @@ export function stopGateway(force = false): void {
       process.kill(pid, "SIGTERM");
     } catch {
       // already dead
+    }
+  }
+  // Always clear the PID file once we've signalled it. Leaving a stale PID
+  // around means the next isGatewayRunning() / stopGateway() call can hit
+  // an unrelated process that the OS has since assigned the same PID.
+  const pidFile = join(HERMES_HOME, "gateway.pid");
+  if (existsSync(pidFile)) {
+    try {
+      unlinkSync(pidFile);
+    } catch {
+      // best-effort; will be overwritten on next gateway start
     }
   }
   gatewayStartedByApp = false;

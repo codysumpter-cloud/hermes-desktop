@@ -9,4 +9,22 @@ describe("shared i18n", () => {
   it("falls back to the key when an English key is missing", () => {
     expect(t("common.missingKey")).toBe("common.missingKey");
   });
+
+  it("returns zh-CN text when available", () => {
+    expect(t("welcome.title", "zh-CN")).toBe("欢迎使用 Hermes");
+  });
+
+  it("returns es text when available", () => {
+    expect(t("welcome.title", "es")).toBe("Bienvenido a Hermes");
+  });
+
+  it("falls back to en when zh-CN key is missing", () => {
+    expect(t("nonExistent.fallbackKey", "zh-CN")).toBe("nonExistent.fallbackKey");
+  });
+
+  it("preserves interpolation placeholders in es", () => {
+    expect(t("common.updateAvailable", "es", { version: "1.2.3" })).toBe(
+      "Actualizar a v1.2.3",
+    );
+  });
 });

@@ -1,5 +1,6 @@
 export default {
   title: "Tools",
+  subtitle: "Enable or disable the toolsets your agent can use during conversations",
   web: {
     label: "Web Search",
     description: "Search the web and extract content from URLs",
@@ -58,4 +59,9 @@ export default {
     label: "Task Planning",
     description: "Create and manage to-do lists for complex tasks",
   },
+  mcpServers: "MCP Servers",
+  mcpDescription: "Model Context Protocol servers configured in config.yaml. Manage via <code>hermes mcp add/remove</code> in the terminal.",
+  http: "HTTP",
+  stdio: "stdio",
+  disabled: "disabled",
 } as const;

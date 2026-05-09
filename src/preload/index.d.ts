@@ -1,4 +1,5 @@
 import { ElectronAPI } from "@electron-toolkit/preload";
+import type { AppLocale } from "../shared/i18n/types";
 
 interface InstallStatus {
   installed: boolean;
@@ -18,6 +19,7 @@ interface InstallProgress {
 interface HermesAPI {
   // Installation
   checkInstall: () => Promise<InstallStatus>;
+  verifyInstall: () => Promise<boolean>;
   startInstall: () => Promise<{ success: boolean; error?: string }>;
   onInstallProgress: (
     callback: (progress: InstallProgress) => void,
@@ -30,11 +32,11 @@ interface HermesAPI {
   runHermesUpdate: () => Promise<{ success: boolean; error?: string }>;
 
   // OpenClaw migration
-  checkOpenClaw: () => Promise<{ found: boolean; path: string | null }>; 
+  checkOpenClaw: () => Promise<{ found: boolean; path: string | null }>;
   runClawMigrate: () => Promise<{ success: boolean; error?: string }>;
 
-  getLocale: () => Promise<"en">;
-  setLocale: (locale: "en") => Promise<"en">;
+  getLocale: () => Promise<AppLocale>;
+  setLocale: (locale: AppLocale) => Promise<AppLocale>;
 
   // Configuration (profile-aware)
   getEnv: (profile?: string) => Promise<Record<string, string>>;
